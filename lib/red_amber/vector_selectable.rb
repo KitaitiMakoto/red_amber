@@ -128,6 +128,41 @@ module RedAmber
       raise VectorArgumentError, "Invalid argument: #{args}"
     end
 
+    # Select elements in the self by indices or booleans.
+    #
+    # @param args [Array<Numeric, true, false, nil>, Vector]
+    #   specifier. Indices or booleans.
+    # @return [Array]
+    #   returns array.
+    #
+    def values_at(*args)
+      array =
+        case args
+        in [Vector => v]
+          return take_by_vector(v).to_a if v.numeric?
+          return filter_by_array(v.data).to_a if v.boolean?
+
+          raise VectorTypeError, "Argument must be numeric or boolean: #{args}"
+        in [Arrow::BooleanArray => ba]
+          return filter_by_array(ba).to_a
+        in []
+          return []
+        in [Arrow::Array => arrow_array]
+          arrow_array
+        in [Range => r]
+          Arrow::Array.new(parse_range(r, size))
+        else
+          Arrow::Array.new(args.flatten)
+        end
+
+      return filter_by_array(array).to_a if array.boolean?
+
+      vector = Vector.new(array)
+      return take_by_vector(vector).to_a if vector.numeric?
+
+      raise VectorArgumentError, "Invalid argument: #{args}"
+    end
+
     # Check if elements of self are in the other values.
     #
     # @param values [Vector, Array, Arrow::Array, Arrow::ChunkedArray]
