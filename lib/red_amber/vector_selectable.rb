@@ -101,31 +101,7 @@ module RedAmber
     #   returns scalar or array.
     #
     def [](*args)
-      array =
-        case args
-        in [Vector => v]
-          return scalar_or_array(take_by_vector(v)) if v.numeric?
-          return scalar_or_array(filter_by_array(v.data)) if v.boolean?
-
-          raise VectorTypeError, "Argument must be numeric or boolean: #{args}"
-        in [Arrow::BooleanArray => ba]
-          return scalar_or_array(filter_by_array(ba))
-        in []
-          return nil
-        in [Arrow::Array => arrow_array]
-          arrow_array
-        in [Range => r]
-          Arrow::Array.new(parse_range(r, size))
-        else
-          Arrow::Array.new(args.flatten)
-        end
-
-      return scalar_or_array(filter_by_array(array)) if array.boolean?
-
-      vector = Vector.new(array)
-      return scalar_or_array(take_by_vector(vector)) if vector.numeric?
-
-      raise VectorArgumentError, "Invalid argument: #{args}"
+      scalar_or_array(values_at(*args))
     end
 
     # Select elements in the self by indices or booleans.
