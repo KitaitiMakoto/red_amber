@@ -120,6 +120,51 @@ class VectorTest < Test::Unit::TestCase
     end
   end
 
+  sub_test_case '#values_at' do
+    test 'empty argument' do
+      assert_equal [], Vector.new.values_at()
+    end
+
+    test '#values_at(indices)' do
+      assert_equal ['B'], @string.values_at(1) # single value
+      assert_equal %w[D A D], @string.values_at(@indices) # array, negative index
+      assert_equal %w[D A D], @string.values_at(Vector.new(@indices)) # array, negative index
+      assert_equal %w[D E C], @string.values_at(3.1, -0.5, -2.5) # float index
+      assert_equal %w[D A D], @string.values_at(Arrow::Array.new(@indices)) # Arrow
+    end
+
+    test '#values_at(indices) with ChunkedArray' do
+      ca = Arrow::ChunkedArray.new([[0, 1], [2, 3]])
+      vector = Vector.new(ca)
+      assert_true vector.chunked?
+      assert_equal [2], vector.values_at(2) # This will fail in 8.0.0
+    end
+
+    test '#values_at(booleans)' do
+      assert_equal ['B'], @string.values_at(1) # single value
+      assert_equal %w[A E], @string.values_at(*@booleans) # arguments
+      assert_equal %w[A E], @string.values_at(@booleans) # primitive Array
+      assert_equal %w[A E], @string.values_at(Arrow::BooleanArray.new(@booleans)) # Arrow::BooleanArray
+      assert_equal %w[A E], @string.values_at(Vector.new(@booleans)) # Vector
+      assert_raise(VectorTypeError) { @string.values_at(Vector.new(@string)) } # Not a boolean Vector
+      assert_raise(VectorArgumentError) { @string.values_at(nil) } # nil array
+      assert_raise(VectorArgumentError) { @string.values_at([nil] * 5) } # nil array
+    end
+
+    test '#values_at(Range)' do
+      assert_equal ['B'], @string.values_at(1..1) # Range of length 1
+      assert_equal %w[B C D], @string.values_at(1..3) # Normal Range
+      assert_equal %w[B C D E], @string.values_at(1..) # Endless Range
+      assert_equal %w[A B C], @string.values_at(..2) # Beginless Range
+      assert_equal %w[B C D], @string.values_at(1..-2) # Range to index from tail
+      assert_raise(IndexError) { @string.values_at(1..6) }
+    end
+
+    test 'invalid argument' do
+      assert_raise(VectorArgumentError) { @string.values_at(Object.new) }
+    end
+  end
+
   sub_test_case '#is_in' do
     setup do
       @vector = Vector.new([1, 2, 3, 4, 5])
