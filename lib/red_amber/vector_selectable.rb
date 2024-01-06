@@ -95,8 +95,6 @@ module RedAmber
     #
     # @param args [Array<Numeric, true, false, nil>, Vector]
     #   specifier. Indices or booleans.
-    # @yieldparam [Array<Numeric, true, false, nil>, Vector]
-    #   specifier. Indices or booleans.
     # @return [scalar, Array]
     #   returns scalar or array.
     #
